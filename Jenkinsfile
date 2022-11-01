@@ -8,11 +8,23 @@ pipeline{
                       sh 'mvn sonar:sonar'
                   }
 
-
+                   timeout(5) {
+                      def qg = waitForQualityGate()
+                      if (qg.status != 'OK') {
+                           error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                      }
+                    }
                 }
             }
         }
         
+        stage("Pushing the artifact to nexus"){
+            steps{
+                script{
+                    sh 'mvn clean deploy'
+                }
+            }
+        }
     }
     post{
         always{
